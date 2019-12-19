@@ -5,7 +5,37 @@ from django.contrib.auth import authenticate,logout,login as login_autent
 from django.contrib.auth.decorators import login_required
 import datetime;
 from .clases import elemento
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.core import serializers
+import json
+from fcm_django.models import FCMDevice
+
 # Create your views here.
+@csrf_exempt
+@require_http_methods(['POST'])
+def guardar_token(request):
+    body = request.body.decode('utf-8')
+    bodyDict = json.loads(body)
+
+    token = bodyDict['token']
+
+    existe= FCMDevice.objects.filter(registration_id = token, active = True)
+
+    if len(existe)>0:
+        return HttpResponseBadRequest(json.dumps({'mensaje':'El token ya existe'}))
+
+    dispositivo = FCMDevice()
+    dispositivo.registration_id = token
+    dispositivo.active = True
+
+    try:
+        dispositivo.save()
+        return HttpResponse(json.dumps({'mensaje':'token guardado'}))
+    except:
+        return HttpResponseBadRequest(json.dumps({'mensaje':'token no guardado'}))
+
 def login(request):
     if request.POST:
         usuario=request.POST.get("InputUsuario")
@@ -58,6 +88,7 @@ def formulario(request):
             stock=stock
         )
         flor.save()
+
     return render(request,'formulario.html')
 
 @login_required(login_url='/login/')

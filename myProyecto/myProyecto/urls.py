@@ -22,6 +22,9 @@ from django.conf.urls.static import static #importar las direcciones estaticas
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('Petalos.urls')),#redireccionar hacia archivo URLS
+    path('oauth/', include('social_django.urls', namespace='social')),
+    path('', include('pwa.urls')),
+
 ]
 if settings.DEBUG:
 	    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
